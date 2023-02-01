@@ -2,12 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ValidateUrls;
 use Illuminate\Http\Request;
 
 class CsvEvaluateController extends Controller
 {
-    public function __invoke(Request $request)
+    public function __construct() { }
+
+
+
+    public function index(ValidateUrls $request)
     {
-        dd($request->all());
+        $urls = $request->all();
+
+        dd($urls);
     }
 }
