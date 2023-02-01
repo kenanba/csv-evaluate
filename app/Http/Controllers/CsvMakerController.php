@@ -11,14 +11,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class CsvMakerController extends Controller
 {
 
-    public function __invoke()
+    public function __invoke($values): BinaryFileResponse
     {
-        $values = [
-            ['Speaker' => 'Alexander Abel', 'Topic' => 'Education Policy', 'Date' => '2012-10-30', 'Words' => '5310'],
-            ['Speaker' => 'Bernhard Belling', 'Topic' => 'Coal Subsidies', 'Date' => '2012-11-05', 'Words' => '1210'],
-            ['Speaker' => 'Caesare Collins', 'Topic' => 'Coal Subsidies', 'Date' => '2012-11-06', 'Words' => '1119'],
-            ['Speaker' => 'Alexander Abel', 'Topic' => 'Internal Security', 'Date' => '2012-12-11', 'Words' => '911']
-        ];
         $columns = [
             'Speaker',
             'Topic',
@@ -27,7 +21,7 @@ class CsvMakerController extends Controller
         ];
         $now = Carbon::now()->format('d-m-Y');
         $filename = "actions-{$now}";
-        return $this->csv_file($columns, $values, $filename);
+        return $this->csv_file($columns, config("csvValues.$values"), $filename);
     }
 
     function csv_file($columns, $data, string $filename = 'export'): BinaryFileResponse
