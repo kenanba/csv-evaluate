@@ -9,6 +9,5 @@ Route::get('csv-evaluate', [CsvEvaluateController::class, 'index']);
 
 
 
-Route::get('csv-maker', CsvMakerController::class);
 
 

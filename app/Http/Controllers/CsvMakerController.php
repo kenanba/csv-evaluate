@@ -4,14 +4,17 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CsvMakerController extends Controller
 {
 
-    public function __invoke($values): BinaryFileResponse
+    public function __invoke($values)
     {
         $columns = [
             'Speaker',
@@ -19,22 +22,24 @@ class CsvMakerController extends Controller
             'Date',
             'Words',
         ];
-        $now = Carbon::now()->format('d-m-Y');
-        $filename = "actions-{$now}";
-        return $this->csv_file($columns, config("csvValues.$values"), $filename);
+        $headers = array(
+            "Content-type" => "text/csv",
+            "Content-Disposition" => "attachment; filename=summary.csv",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        );
+        $data = config("csvValues.$values");
+
+        $callback = function () use ($data, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            foreach ($data as $items) {
+                fputcsv($file, $items);
+            }
+            fclose($file);
+        };
+        return response()->stream($callback, 200, $headers);
     }
 
-    function csv_file($columns, $data, string $filename = 'export'): BinaryFileResponse
-    {
-        $file = fopen('php://memory', 'wb');
-        $csvHeader = [...$columns];
-        fputcsv($file, $csvHeader);
-        foreach ($data as $line) {
-            fputcsv($file, $line);
-        }
-        fseek($file, 0);
-        $uid = Str::uuid();
-        Storage::disk('public')->put("/$uid", $file);
-        return response()->download(storage_path('app/public/'.$uid), "$filename.csv");
-    }
 }
