@@ -16,30 +16,54 @@ class CsvMakerController extends Controller
 
     public function __invoke($values)
     {
-        $columns = [
-            'Speaker',
-            'Topic',
-            'Date',
-            'Words',
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="file.csv"',
         ];
-        $headers = array(
-            "Content-type" => "text/csv",
-            "Content-Disposition" => "attachment; filename=summary.csv",
-            "Pragma" => "no-cache",
-            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
-            "Expires" => "0"
-        );
-        $data = config("csvValues.$values");
 
-        $callback = function () use ($data, $columns) {
+        $callback = function() {
             $file = fopen('php://output', 'w');
-            fputcsv($file, $columns);
-            foreach ($data as $items) {
-                fputcsv($file, $items);
+
+            fputcsv($file, ['column1', 'column2', 'column3']);
+            $data = [
+                ['Speaker' => 'Matrix Abel', 'Topic' => 'Education Policy', 'Date' => '2012-10-12', 'Words' => '6052'],
+                ['Speaker' => 'Bernhard Belling', 'Topic' => 'Coal Subsidies', 'Date' => '2012-11-25', 'Words' => '4515'],
+                ['Speaker' => 'LKenan Collins', 'Topic' => 'Coal Subsidies', 'Date' => '2012-11-14', 'Words' => '8898'],
+                ['Speaker' => 'Alexander Abel', 'Topic' => 'Internal Security', 'Date' => '2012-12-23', 'Words' => '258']
+            ];
+
+            foreach ($data as $row) {
+                fputcsv($file, $row);
             }
+
             fclose($file);
         };
-        return response()->stream($callback, 200, $headers);
+
+        return Response::streamDownload($callback, 'file.csv', $headers);
     }
+//    public function __invoke($values)
+//    {
+//        $columns = [
+//            'Speaker',
+//            'Topic',
+//            'Date',
+//            'Words',
+//        ];
+//        $headers = array(
+//            "Content-type" => "text/csv",
+//            "Content-Disposition" => "attachment; filename=summary.csv",
+//        );
+//        $data = config("csvValues.$values");
+//
+//        $callback = function () use ($data, $columns) {
+//            $file = fopen('php://output', 'w');
+//            fputcsv($file, $columns);
+//            foreach ($data as $items) {
+//                fputcsv($file, $items);
+//            }
+//            fclose($file);
+//        };
+//        return response()->stream($callback, 200, $headers);
+//    }
 
 }
