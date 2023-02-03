@@ -55,7 +55,7 @@ class CsvEvaluateController extends Controller
         //2. Which politician gave the most speeches on the topic „Internal Security"?
         //1. Which politician gave the most speeches in 2013?
         $filtered = $collectionCsv->values()->filter(function ($value, $key) {
-            return Carbon::parse($value[ 'Date' ])->format('Y') >= '2011';
+            return Carbon::parse($value[ 'Date' ])->format('Y') >= '2013';
         });
         if (!$filtered->isEmpty()) {
             $result = $filtered->groupBy('Speaker')
@@ -65,17 +65,41 @@ class CsvEvaluateController extends Controller
             $maxValues = $result->filter(function ($value) use ($max) {
                 return $value == $max;
             });
-            if ($maxValues->count()) {
+            if ($maxValues->count() == 1) {
+                $mostSpeeches = $maxValues->keys()->first().' '.$maxValues->values()->first();
+            }
+            if ($maxValues->count() > 1) {
                 foreach ($maxValues as $key => $value) {
                     $mostSpeeches .= ' '.$key;
                 }
             }
-            dd('dawsd');
             //1. Which politician gave the most speeches in 2013?
-
-
-
-            return response()->json();
         }
+        //3. Which politician used the fewest words (in total)?
+        $cold = collect();
+        $result = $collectionCsv->values()->groupBy('Speaker')
+            ->map(function ($carry, $item) {
+                return $carry->reduce(function ($carry, $item) {
+                    return $carry + $item[ 'Words' ];
+                });
+            });
+        $min = $result->min();
+        $minValues = $result->filter(function ($value) use ($min) {
+            return $value == $min;
+        });
+        if ($minValues->count() == 1) {
+            $leastWordy = $minValues->keys()->first().' '.$minValues->values()->first();
+        }
+        if ($minValues->count() > 1) {
+            foreach ($minValues as $key => $value) {
+                $leastWordy .= ' '.$key;
+            }
+        }
+        //3. Which politician used the fewest words (in total)?
+        return response()->json([
+            'mostSpeeches' => $mostSpeeches,
+            'mostSecurity' => $mostSecurity,
+            'leastWordy' => $leastWordy,
+        ], 200);
     }
 }
