@@ -32,7 +32,10 @@ class CsvEvaluateController extends Controller
         foreach ($request->query('url') as $key => $url) {
             $fileName = "$this->ulid/file_$key.csv";
             $response = Http::withOptions(['timeout' => 60])->get($url);
+
+
             if ($response->successful()) {
+                if ($response->header('Content-Type') != 'text/csv; charset=UTF-8')return response()->json('The Content-Type have to be TEXT/CSV', 400);
                 Storage::disk('public')->put($fileName, $response->body());
                 $rows = array_map(function ($v) { return str_getcsv($v, ","); },
                     file(storage_path('/app/public/').$fileName)
