@@ -83,9 +83,13 @@ class CsvEvaluateController extends Controller
     {
         $getMostSecurity = $collectionCsv
             ->values()
-            ->where('Topic', 'Internal Security')
-            ->first();
-        return $getMostSecurity[ 'Speaker' ];
+            ->where('Topic', 'Internal Security')->groupby('Speaker')->map
+            ->count();
+
+        if (!empty($getMostSecurity)){
+            return $this->checkIfOneOrMoreValues($getMostSecurity, $getMostSecurity->max());
+        }
+        return '';
     }
 
     /**
